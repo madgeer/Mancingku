@@ -44,14 +44,16 @@ export const getPostBySlug = async (req, res) => {
 */
 export const createPost = async (req, res) => {
     try {
-        const data = req.body;
+        const { title, slug, image, content } = req.body;
+        const author_id = req.user.id; // Dipetakan otomatis dari token terautentikasi
 
         // Validasi dasar biar request kosong tidak lewat
-        if (!data.title || !data.slug || !data.content) {
+        if (!title || !slug || !content) {
             return res.status(400).json({ message: "Title, slug, dan content wajib diisi" });
         }
 
-        const result = await BlogModel.create(data);
+        const cleanData = { title, slug, image, content, author_id };
+        const result = await BlogModel.create(cleanData);
         
         res.json({ 
             message: "Post berhasil ditambah", 
@@ -71,9 +73,16 @@ export const createPost = async (req, res) => {
 export const updatePost = async (req, res) => {
     try {
         const { id } = req.params;
-        const data = req.body;
         
-        const result = await BlogModel.update(data, id);
+        // Whitelist properti yang diizinkan untuk update
+        const { title, slug, image, content } = req.body;
+        const cleanData = {};
+        if (title !== undefined) cleanData.title = title;
+        if (slug !== undefined) cleanData.slug = slug;
+        if (image !== undefined) cleanData.image = image;
+        if (content !== undefined) cleanData.content = content;
+        
+        const result = await BlogModel.update(cleanData, id);
 
         if (result.affectedRows === 0) {
             return res.status(404).json({ message: "Post tidak ditemukan" });

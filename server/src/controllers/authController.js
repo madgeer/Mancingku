@@ -19,6 +19,11 @@ export const register = async (req, res) => {
             return res.status(400).json({ message: "Email dan password wajib diisi" });
         }
 
+        // Validasi kekuatan password
+        if (password.length < 8) {
+            return res.status(400).json({ message: "Password minimal harus memiliki panjang 8 karakter" });
+        }
+
         // Cek apakah email sudah terdaftar
         const existingUser = await AuthModel.findByEmail(email);
         if (existingUser) {

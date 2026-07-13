@@ -52,9 +52,16 @@ export const createFishingGear = async (req, res) => {
 export const updateFishingGear = async (req, res) => {
   try {
     const { id } = req.params;
-    const data = req.body;
+    
+    // Whitelist properti yang boleh diedit
+    const { name, image, description, purchase_link } = req.body;
+    const cleanData = {};
+    if (name !== undefined) cleanData.name = name;
+    if (image !== undefined) cleanData.image = image;
+    if (description !== undefined) cleanData.description = description;
+    if (purchase_link !== undefined) cleanData.purchase_link = purchase_link;
 
-    const result = await FishingGearModel.update(data, id);
+    const result = await FishingGearModel.update(cleanData, id);
 
     if (result.affectedRows === 0) {
       return res.status(404).json({ message: "Fishing gear not found" });

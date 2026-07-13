@@ -3,12 +3,13 @@ import SpotModel from "../models/spotsModel.js"; // Pastikan path ini benar
 
 export const createReview = async (req, res) => {
     try {
-        const { user_id, spot_id, rating, comment } = req.body;
+        const { spot_id, rating, comment } = req.body;
+        const user_id = req.user.id; // Diambil langsung dari token terautentikasi untuk mencegah impersonation
 
         // 🔴 VALIDASI WAJIB
-        if (!user_id || !spot_id) {
+        if (!spot_id) {
             return res.status(400).json({
-                message: "User dan Spot wajib diisi"
+                message: "Spot wajib diisi"
             });
         }
 

@@ -115,10 +115,17 @@ export const createBooking = async (req, res) => {
 export const getBookingById = async (req, res) => {
     try {
         const { id } = req.params;
+        const userId = req.user.id;
+        
         const booking = await BookingModel.getById(id);
 
         if (!booking) {
             return res.status(404).json({ message: "Booking tidak ditemukan" });
+        }
+
+        // BOLA/IDOR protection: Pastikan hanya pemilik booking atau admin yang bisa mengakses
+        if (booking.user_id !== userId && req.user.role !== 'admin') {
+            return res.status(403).json({ message: "Akses ditolak! Anda bukan pemilik booking ini." });
         }
 
         res.json(booking);
@@ -174,6 +181,13 @@ export const updateStatus = async (req, res) => {
 export const getByUserIdPaid = async (req, res) => {
     try {
         const { id } = req.params;
+        const loggedInUserId = req.user.id;
+
+        // BOLA/IDOR protection: Pastikan hanya pemilik akun yang bisa mengambil riwayat berstatus 'paid'
+        if (parseInt(id) !== loggedInUserId && req.user.role !== 'admin') {
+            return res.status(403).json({ message: "Akses ditolak! Anda tidak diizinkan mengakses data ini." });
+        }
+
         const bookings = await BookingModel.getByUserIdPaid(id);
 
         res.json(bookings);

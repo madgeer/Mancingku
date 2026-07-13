@@ -3,6 +3,14 @@ import HistoryModel from '../models/historyModel.js';
 const getHistory = async (req, res) => {
     const { userId } = req.params;
 
+    // BOLA/IDOR Protection
+    if (req.user.id !== parseInt(userId) && req.user.role !== 'admin') {
+        return res.status(403).json({
+            success: false,
+            message: 'Akses ditolak! Anda hanya dapat melihat riwayat Anda sendiri.'
+        });
+    }
+
     try {
         const data = await HistoryModel.getByUserId(userId);
 

@@ -4,6 +4,11 @@ export const getUser = async (req, res) => {
     try {
         const userId = req.params.id;
 
+        // BOLA/IDOR protection: Pastikan hanya pemilik profil atau admin yang bisa mengakses
+        if (req.user.id !== parseInt(userId) && req.user.role !== 'admin') {
+            return res.status(403).json({ message: "Akses ditolak! Anda tidak diizinkan melihat profil ini." });
+        }
+
         const user = await UserModel.findById(userId);
 
         if(!user) {
@@ -22,7 +27,16 @@ export const updateUser = async (req, res) => {
         console.log("Isi Body:", req.body);
         const userId = req.params.id;
 
-        const user = await UserModel.update(userId, req.body);
+        // BOLA/IDOR protection: Pastikan hanya pemilik profil atau admin yang bisa memperbarui
+        if (req.user.id !== parseInt(userId) && req.user.role !== 'admin') {
+            return res.status(403).json({ message: "Akses ditolak! Anda tidak diizinkan mengubah profil ini." });
+        }
+
+        // Whitelist fields untuk mencegah mass assignment
+        const { name, phone } = req.body;
+        const cleanData = { name, phone };
+
+        await UserModel.update(userId, cleanData);
 
         res.json({ message: "Profil berhasil diperbarui "});
     }catch (error) {

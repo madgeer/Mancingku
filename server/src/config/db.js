@@ -1,20 +1,14 @@
 import mysql from 'mysql2/promise';
+import dotenv from 'dotenv';
 
-// Create the connection pool. The pool-specific settings are the defaults
+dotenv.config();
+
+// Create the connection pool using environment variables
 const dbPool = mysql.createPool({
-  host: 'localhost',
-  user: 'root',
-  database: 'mancingku_dev',
-  password: '',
+  host: process.env.DB_HOST || 'localhost',
+  user: process.env.DB_USER || 'root',
+  database: process.env.DB_NAME || 'mancingku_dev',
+  password: process.env.DB_PASSWORD || '',
 });
-
-// try {
-//   // For pool initialization, see above
-//   const [rows, fields] = await pool.query('SELECT * FROM users');
-//   console.log(rows);
-//   // Connection is automatically released when query resolves
-// } catch (err) {
-//   console.log(err);
-// }
 
 export default dbPool;

@@ -5,19 +5,21 @@ import {
     updateFishingGear,
     deleteFishingGear
 } from "../controllers/fishingGearsController.js"; 
+import verifyToken from "../middleware/authUser.js";
+import verifyAdmin from "../middleware/authAdmin.js";
 
 const router = express.Router();
 
 // GET: Ambil semua data fishing gear
 router.get('/fishingGear', getAllFishingGear);
 
-// POST: Tambah fishing gear baru
-router.post('/fishingGear', createFishingGear);
+// POST: Tambah fishing gear baru (memerlukan hak admin)
+router.post('/fishingGear', verifyToken, verifyAdmin, createFishingGear);
 
-// patch: Update fishing gear berdasarkan ID
-router.patch('/fishingGear/:id', updateFishingGear);
+// patch: Update fishing gear berdasarkan ID (memerlukan hak admin)
+router.patch('/fishingGear/:id', verifyToken, verifyAdmin, updateFishingGear);
 
-// DELETE: Hapus fishing gear berdasarkan ID
-router.delete('/fishingGear/:id', deleteFishingGear);
+// DELETE: Hapus fishing gear berdasarkan ID (memerlukan hak admin)
+router.delete('/fishingGear/:id', verifyToken, verifyAdmin, deleteFishingGear);
 
 export default router;

@@ -2,6 +2,9 @@ import express from 'express';
 import helmet from 'helmet';
 import cors from 'cors';
 import rateLimit from 'express-rate-limit';
+import dotenv from 'dotenv';
+
+dotenv.config(); // Memuat dotenv di level root aplikasi sebelum semua rute di-load
 
 import UserRoute from './src/routes/usersRoute.js';
 import SpotRoute from './src/routes/spotsRoute.js';
@@ -16,10 +19,8 @@ import HistoryRoute from './src/routes/historyRoute.js';
 import GearsRoute from './src/routes/gearsRoute.js';
 import SpotGearsRoute from "./src/routes/spotGearsRoute.js";
 
-
-
 const app = express();
-const port = 3000;
+const port = process.env.PORT || 3000;
 
 /**
  * Middleware keamanan global
@@ -53,7 +54,6 @@ app.set('trust proxy', 1);
 app.use('/assets', express.static('assets'));
 
 // Registrasi seluruh rute API
-// Setiap file route sudah mendefinisikan prefix endpoint-nya sendiri
 app.use(UserRoute);
 app.use(SpotRoute);
 app.use(SessionRoute);
@@ -69,20 +69,20 @@ app.use(GearsRoute);
 
 /**
  * Middleware penanganan error global
- * Mengembalikan respons JSON standar setiap kali terjadi error di route mana pun
+ * Menyembunyikan rincian teknis di lingkungan produksi
  */
 app.use((err, req, res, next) => {
   console.error('Error caught:', err);
+  const isDev = process.env.NODE_ENV === 'development';
 
   res.status(err.status || 500).json({
     success: false,
-    message: err.message || 'Terjadi kesalahan pada server'
+    message: isDev ? err.message : 'Terjadi kesalahan pada server'
   });
 });
 
 /**
  * Menjalankan server HTTP
- * Mencetak informasi port untuk memastikan server aktif
  */
 app.listen(port, () => {
   console.log(`Server berjalan di port ${port}`);

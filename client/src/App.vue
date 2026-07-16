@@ -961,14 +961,16 @@ const handleLogout = () => {
 
               <div class="detail-meta-box">
                 <table>
-                  <tr>
-                    <td class="label">Location:</td>
-                    <td>{{ selectedSpot.address }}</td>
-                  </tr>
-                  <tr>
-                    <td class="label">Classification:</td>
-                    <td><span class="badge-status badge-paid">{{ selectedSpot.category }}</span></td>
-                  </tr>
+                  <tbody>
+                    <tr>
+                      <td class="label">Location:</td>
+                      <td>{{ selectedSpot.address }}</td>
+                    </tr>
+                    <tr>
+                      <td class="label">Classification:</td>
+                      <td><span class="badge-status badge-paid">{{ selectedSpot.category }}</span></td>
+                    </tr>
+                  </tbody>
                 </table>
               </div>
 

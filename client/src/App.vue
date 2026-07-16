@@ -1,7 +1,7 @@
 <script setup>
 import { ref, onMounted, computed, watch } from 'vue';
 
-const API_BASE = 'http://localhost:3000';
+const API_BASE = 'http://127.0.0.1:3000';
 
 // App States
 const currentTab = ref('home'); // home, browse, queue, gears, baits, blog, auth
@@ -36,7 +36,18 @@ const reviewForm = ref({
 
 // Authentication State
 const token = ref(localStorage.getItem('mancingku_token') || '');
-const currentUser = ref(JSON.parse(localStorage.getItem('mancingku_user')) || null);
+const safeParseUser = () => {
+  try {
+    const data = localStorage.getItem('mancingku_user');
+    if (!data || data === 'undefined') return null;
+    return JSON.parse(data);
+  } catch (err) {
+    localStorage.removeItem('mancingku_user');
+    localStorage.removeItem('mancingku_token');
+    return null;
+  }
+};
+const currentUser = ref(safeParseUser());
 const authMode = ref('login'); // login, register
 const authForm = ref({
   email: '',
@@ -107,7 +118,8 @@ onMounted(() => {
 
 // Helper for dynamic image URL construction (Unsplash Fallbacks for rich look)
 const getImageUrl = (imagePath, type = 'spots', index = 0) => {
-  if (!imagePath || imagePath === '') {
+  const pathStr = String(imagePath || '').trim();
+  if (pathStr === '') {
     // Unsplash Fallbacks based on category type/index
     if (type === 'spots') {
       const placeholders = [
@@ -131,9 +143,14 @@ const getImageUrl = (imagePath, type = 'spots', index = 0) => {
       return 'https://images.unsplash.com/photo-1516690561799-46d8f74f9abf?w=400&q=80';
     }
   }
-  if (imagePath.startsWith('http')) return imagePath;
-  if (imagePath.startsWith('assets/')) return `${API_BASE}/${imagePath}`;
-  return `${API_BASE}/assets/${type}/${imagePath}`;
+  if (pathStr.startsWith('http')) return pathStr;
+  if (pathStr.startsWith('assets/')) return `${API_BASE}/${pathStr}`;
+  if (type === 'gears') {
+    return `${API_BASE}/assets/perlengkapan/pancingan/${pathStr}`;
+  } else if (type === 'baits') {
+    return `${API_BASE}/assets/perlengkapan/umpan/${pathStr}`;
+  }
+  return `${API_BASE}/assets/${type}/${pathStr}`;
 };
 
 const showToast = (msg) => {
@@ -184,11 +201,11 @@ const fetchSpots = async () => {
 
 const fetchGears = async () => {
   try {
-    const res = await fetch(`${API_BASE}/fishingGear`);
+    const res = await fetch(`${API_BASE}/gears`);
     if (res.ok) {
       allGears.value = await res.json();
     } else {
-      const res2 = await fetch(`${API_BASE}/gears`);
+      const res2 = await fetch(`${API_BASE}/fishingGear`);
       if (res2.ok) {
         allGears.value = await res2.json();
       }
@@ -778,7 +795,7 @@ const handleLogout = () => {
                     <div style="font-size: 10px; color: #777; margin-top:2px;">Ticket ID: #00{{ q.id }}</div>
                   </td>
                   <td>{{ q.date }}</td>
-                  <td class="bold text-success">Rp {{ q.price.toLocaleString('id-ID') }}</td>
+                  <td class="bold text-success">Rp {{ (q.price || 0).toLocaleString('id-ID') }}</td>
                   <td>
                     <span :class="['badge-status', `badge-${q.original_status}`]">
                       {{ q.original_status }}
@@ -819,7 +836,7 @@ const handleLogout = () => {
               </div>
               <div class="bold" style="font-size: 13px; color: #333; margin-bottom:4px;">{{ gear.name }}</div>
               <div class="dvd-meta">{{ gear.description }}</div>
-              <div class="bold text-success" style="margin-bottom: 8px;">Rp {{ gear.price.toLocaleString('id-ID') }} / session</div>
+              <div class="bold text-success" style="margin-bottom: 8px;">Rp {{ (gear.price || 0).toLocaleString('id-ID') }} / session</div>
               <div style="font-size: 10px; color: var(--text-grey); margin-bottom: 8px;">Stock Available: {{ gear.stock }}</div>
             </div>
           </div>
@@ -993,7 +1010,7 @@ const handleLogout = () => {
                 <label>Select Session:</label>
                 <select v-model="activeBookingForm.sessionId">
                   <option v-for="s in spotSessions" :key="s.id" :value="s.id">
-                    {{ s.session_name || 'Session' }} - Rp {{ s.price.toLocaleString('id-ID') }}
+                    {{ s.session_name || 'Session' }} - Rp {{ (s.price || 0).toLocaleString('id-ID') }}
                   </option>
                 </select>
               </div>
@@ -1009,7 +1026,7 @@ const handleLogout = () => {
               <div style="display: flex; flex-direction: column; gap: 5px;">
                 <div v-for="gear in allGears" :key="'rent-'+gear.id" style="display:flex; justify-content:space-between; align-items:center; background:#fff; padding:5px 10px; border:1px solid #ddd; border-radius:2px; font-size:11px;">
                   <div>
-                    <span class="bold">{{ gear.name }}</span> (Rp {{ gear.price.toLocaleString('id-ID') }} / pcs)
+                    <span class="bold">{{ gear.name }}</span> (Rp {{ (gear.price || 0).toLocaleString('id-ID') }} / pcs)
                   </div>
                   <div style="display: flex; align-items: center; gap: 5px;">
                     <button v-if="!isGearSelected(gear.id)" class="btn-yellow" style="padding: 2px 8px; width: 60px;" @click="toggleGearSelection(gear)">

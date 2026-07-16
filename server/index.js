@@ -41,8 +41,7 @@ app.use(rateLimit({
   windowMs: 60 * 1000, // Interval 1 menit
   max: 100,            // Maksimum 100 request per IP
   standardHeaders: true,
-  legacyHeaders: false,
-  keyGenerator: (req, res) => req.ip
+  legacyHeaders: false
 }));
 
 /**
